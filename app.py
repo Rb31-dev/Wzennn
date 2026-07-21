@@ -1,10 +1,3 @@
-Ficou ótimo ver a imagem! Dá para ajustar exatamente do jeito que você quer.
-
-Para aplicar essa paleta de cores elegante/clean e mover a barra de pesquisa e filtros para o topo, você precisará atualizar 2 arquivos no seu projeto do GitHub:
-
-1️⃣ Atualize a paleta de cores no arquivo .streamlit/config.toml
-Substitua o conteúdo do arquivo .streamlit/config.toml por este código. Ele define o fundo claro, os textos escuros e a cor dos botões em Azul Marinho:
-
 Ini, TOML
 [theme]
 primaryColor = "#1B2A4A"              # Azul marinho (botões e destaques)
