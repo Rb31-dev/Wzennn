@@ -3,10 +3,10 @@ import streamlit as st
 # 1. Configuração da página
 st.set_page_config(page_title="Sneaker Vault", page_icon="👟", layout="wide")
 
-# 2. Injeção de CSS para garantir o tema claro + estilo rústico elegante
+# 2. Injeção de CSS Corrigido (Força texto branco nos botões e ajusta bordas)
 st.markdown("""
 <style>
-    /* Força fundo claro e remove sombras escuras padrão */
+    /* Força fundo claro global */
     .stApp, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
         background-color: #FAFAFA !important;
     }
@@ -17,8 +17,8 @@ st.markdown("""
         border-right: 2px solid #111111 !important;
     }
 
-    /* Textos sempre escuros e visíveis */
-    h1, h2, h3, h4, h5, h6, label, p, span, div {
+    /* Textos padrão do site */
+    h1, h2, h3, h4, h5, h6, label, p, span {
         color: #111111 !important;
         font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
     }
@@ -29,41 +29,47 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* Cards dos Tênis - Bordas bem marcadas e rústicas */
+    /* Cards dos Tênis - Bordas marcadas e rústicas */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 6px !important;
         border: 2px solid #111111 !important;
         background-color: #FFFFFF !important;
         box-shadow: 4px 4px 0px #111111 !important;
-        padding: 12px;
+        padding: 16px;
     }
 
-    /* Botões em Azul Marinho com alto contraste */
+    /* ESTILO DOS BOTÕES (Correção de Contraste e Espaçamento) */
     div.stButton > button {
         background-color: #1B2A4A !important;
-        color: #FFFFFF !important;
         border: 2px solid #111111 !important;
         border-radius: 4px !important;
-        font-weight: 700 !important;
         box-shadow: 3px 3px 0px #111111 !important;
-        transition: all 0.1s ease;
+        padding: 8px 16px !important;
+        transition: all 0.1s ease !important;
     }
 
+    /* Correção do Texto Interno do Botão (Remove a transparência/cor preta) */
+    div.stButton > button p, 
+    div.stButton > button span, 
+    div.stButton > button div {
+        color: #FFFFFF !important;
+        font-weight: 700 !important;
+        font-size: 0.9em !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    /* Efeito ao passar o mouse */
     div.stButton > button:hover {
         background-color: #111111 !important;
-        color: #FFFFFF !important;
         box-shadow: 4px 4px 0px #1B2A4A !important;
     }
 
-    /* Ajuste para botões dentro de formulários */
-    div.stFormSubmitButton > button {
-        background-color: #111111 !important;
+    div.stButton > button:hover p,
+    div.stButton > button:hover span {
         color: #FFFFFF !important;
-        border: 2px solid #111111 !important;
-        box-shadow: 3px 3px 0px #1B2A4A !important;
     }
 
-    /* Caixas de texto e seleções */
+    /* Entradas de texto e seleção */
     div[data-baseweb="input"], div[data-baseweb="select"] {
         border: 2px solid #111111 !important;
         border-radius: 4px !important;
@@ -72,11 +78,10 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Gerenciamento do Estado (Produtos e Carrinho)
+# 3. Estado da Aplicação (Produtos e Carrinho)
 if "carrinho" not in st.session_state:
     st.session_state.carrinho = []
 
-# Lista inicial de produtos salva na sessão para permitir novos cadastros
 if "produtos" not in st.session_state:
     st.session_state.produtos = [
         {
@@ -109,7 +114,7 @@ if "produtos" not in st.session_state:
         },
     ]
 
-# --- SIDEBAR (Carrinho de Compras) ---
+# --- SIDEBAR (Carrinho) ---
 st.sidebar.title("🛒 SEU CARRINHO")
 st.sidebar.write("---")
 
@@ -117,7 +122,7 @@ if not st.session_state.carrinho:
     st.sidebar.write("O carrinho está vazio.")
 else:
     total = 0
-    for idx, item in enumerate(st.session_state.carrinho):
+    for item in st.session_state.carrinho:
         st.sidebar.markdown(f"**{item['nome']}**")
         st.sidebar.markdown(f"<span class='secondary-text'>R$ {item['preco']:.2f}</span>", unsafe_allow_html=True)
         total += item["preco"]
@@ -135,7 +140,7 @@ st.title("SNEAKER VAULT")
 st.markdown("<p class='secondary-text' style='font-size: 1.1em;'>Vitrine clássica & acervo de sneakers</p>", unsafe_allow_html=True)
 st.write("")
 
-# --- ÁREA DE CADASTRO DE NOVOS PRODUTOS ---
+# --- PAINEL PARA CADASTRAR NOVOS PRODUTOS ---
 with st.expander("➕ Adicionar Novo Tênis ao Catálogo"):
     with st.form("form_novo_tenis", clear_on_submit=True):
         st.subheader("Cadastrar Produto")
@@ -147,7 +152,7 @@ with st.expander("➕ Adicionar Novo Tênis ao Catálogo"):
         with col_p:
             novo_preco = st.number_input("Preço (R$)", min_value=0.0, value=299.90, step=10.0)
             
-        nova_imagem = st.text_input("URL da Imagem (Link da foto)", value="https://images.unsplash.com/photo-1552346154-21d32810aba3?w=500")
+        nova_imagem = st.text_input("URL da Imagem", value="https://images.unsplash.com/photo-1552346154-21d32810aba3?w=500")
         
         btn_cadastrar = st.form_submit_button("CADASTRAR TÊNIS", use_container_width=True)
         
@@ -169,10 +174,9 @@ with st.expander("➕ Adicionar Novo Tênis ao Catálogo"):
 
 st.write("---")
 
-# --- BARRA DE BUSCA E FILTROS ---
+# --- BUSCA E FILTROS ---
 col_busca, col_filtro = st.columns([2, 1])
 
-# Extrai marcas dinamicamente para o filtro
 marcas_disponiveis = ["Todas"] + sorted(list(set([t["marca"] for t in st.session_state.produtos])))
 
 with col_busca:
@@ -183,7 +187,7 @@ with col_filtro:
 
 st.write("---")
 
-# --- LÓGICA DE FILTRAGEM ---
+# --- FILTRAGEM ---
 produtos_filtrados = st.session_state.produtos
 
 if marca_selecionada != "Todas":
@@ -192,7 +196,7 @@ if marca_selecionada != "Todas":
 if busca:
     produtos_filtrados = [t for t in produtos_filtrados if busca.lower() in t["nome"].lower()]
 
-# --- VITRINE DE PRODUTOS ---
+# --- VITRINE ---
 if not produtos_filtrados:
     st.info("Nenhum tênis encontrado.")
 else:
