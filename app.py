@@ -1,14 +1,3 @@
-Ini, TOML
-[theme]
-primaryColor = "#1B2A4A"              # Azul marinho (botões e destaques)
-backgroundColor = "#FAFAFA"           # Fundo geral off-white
-secondaryBackgroundColor = "#FFFFFF"  # Fundo dos cards e barra lateral (Branco puro)
-textColor = "#1A1A1A"                 # Preto profundo para o texto
-font = "sans serif"
-2️⃣ Atualize o código no seu app.py
-Substitua o código do seu app.py pelo código abaixo. Ele move a barra de pesquisa e o filtro de marcas para o topo (usando colunas lado a lado) e aplica estilos refinados:
-
-Python
 import streamlit as st
 
 # Configuração da página
@@ -137,58 +126,4 @@ else:
                 if st.button("Adicionar ao Carrinho", key=f"btn_{tenis['id']}", type="primary", use_container_width=True):
                     st.session_state.carrinho.append(tenis)
                     st.toast(f"{tenis['nome']} adicionado ao carrinho!", icon="✅")
-                    st.rerun()        "preco": 899.90,
-        "imagem": "https://images.unsplash.com/photo-1539185441755-769473a23570?w=500",
-    },
-]
-
-# --- BARRA LATERAL (Filtros e Carrinho) ---
-st.sidebar.title("🛒 Seu Carrinho")
-if not st.session_state.carrinho:
-    st.sidebar.info("Seu carrinho está vazio.")
-else:
-    total = 0
-    for item in st.session_state.carrinho:
-        st.sidebar.write(f"**{item['nome']}**")
-        st.sidebar.caption(f"R$ {item['preco']:.2f}")
-        total += item["preco"]
-    st.sidebar.divider()
-    st.sidebar.subheader(f"Total: R$ {total:.2f}")
-    if st.sidebar.button("Finalizar Compra", type="primary"):
-        st.sidebar.balloons()
-        st.sidebar.success("Pedido realizado com sucesso!")
-        st.session_state.carrinho = []
-
-st.sidebar.divider()
-st.sidebar.title("🔍 Filtros")
-marca_selecionada = st.sidebar.selectbox("Filtrar por Marca", ["Todas", "Nike", "Adidas", "Puma", "New Balance"])
-
-# --- CORPO DO SITE ---
-st.title("👟 Sneaker Vault")
-st.subheader("Os melhores modelos para o seu estilo")
-st.write("---")
-
-# Filtragem de produtos
-produtos_filtrados = tenis_db
-if marca_selecionada != "Todas":
-    produtos_filtrados = [t for t in tenis_db if t["marca"] == marca_selecionada]
-
-# Exibição em Vitrine (3 colunas por linha)
-cols = st.columns(3)
-
-for idx, tenis in enumerate(produtos_filtrados):
-    # Distribui os cards entre as 3 colunas
-    col = cols[idx % 3]
-    
-    with col:
-        with st.container(border=True):
-            st.image(tenis["imagem"], use_container_width=True)
-            st.markdown(f"### {tenis['nome']}")
-            st.caption(f"Marca: {tenis['marca']}")
-            st.markdown(f"**R$ {tenis['preco']:.2f}**")
-            
-            # Botão de compra com funcionalidade
-            if st.button("Adicionar ao Carrinho", key=f"btn_{tenis['id']}"):
-                st.session_state.carrinho.append(tenis)
-                st.toast(f"{tenis['nome']} adicionado ao carrinho!", icon="✅")
-                st.rerun()
+                    st.rerun()
