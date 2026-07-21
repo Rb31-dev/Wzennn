@@ -3,7 +3,7 @@ import streamlit as st
 # 1. Configuração da página
 st.set_page_config(page_title="Sneaker Vault", page_icon="👟", layout="wide")
 
-# 2. Injeção de CSS para o estilo rústico clássico (Cards, Caixas e Botões)
+# 2. Injeção de CSS para o estilo rústico clássico
 st.markdown("""
 <style>
     /* Força fundo claro global */
@@ -29,7 +29,7 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* Estilização para Caixas/Cards no geral e na Sidebar */
+    /* Cards e Caixas na Sidebar e Vitrine */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 6px !important;
         border: 2px solid #111111 !important;
@@ -70,7 +70,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Entradas de Texto, Selects e Sliders */
+    /* Inputs e Selects */
     div[data-baseweb="input"], div[data-baseweb="select"] {
         border: 2px solid #111111 !important;
         border-radius: 4px !important;
@@ -79,12 +79,12 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Estado da Aplicação
+# 3. Estado da Aplicação (Carrinho e Produtos)
 if "carrinho" not in st.session_state:
     st.session_state.carrinho = []
 
-# Base de produtos enriquecida com Cor e Tamanhos
-if "produtos" not in st.session_state:
+# Função para resetar os produtos para o padrão atualizado
+def resetar_produtos():
     st.session_state.produtos = [
         {
             "id": 1,
@@ -124,6 +124,10 @@ if "produtos" not in st.session_state:
         },
     ]
 
+# Garante que a lista de produtos exista no estado
+if "produtos" not in st.session_state:
+    resetar_produtos()
+
 # --- SIDEBAR (BARRA LATERAL COM CAIXAS) ---
 with st.sidebar:
     st.title("🛒 SEU CARRINHO")
@@ -150,17 +154,24 @@ with st.sidebar:
     st.write("")
     st.title("⚡ FILTROS")
 
-    # Listas dinâmicas para os seletores
-    marcas_opts = ["Todas"] + sorted(list(set([t["marca"] for t in st.session_state.produtos])))
-    cores_opts = ["Todas"] + sorted(list(set([t["cor"] for t in st.session_state.produtos])))
+    # Tratamento seguro (.get) para evitar KeyError com produtos antigos
+    marcas_opts = ["Todas"] + sorted(list(set([t.get("marca", "Outra") for t in st.session_state.produtos])))
+    cores_opts = ["Todas"] + sorted(list(set([t.get("cor", "Única") for t in st.session_state.produtos])))
     
-    # Extrai todos os tamanhos disponíveis na base
-    todos_tamanhos = sorted(list(set([tam for t in st.session_state.produtos for tam in t["tamanhos"]])))
-    tamanhos_opts = ["Todos"] + [str(tam) for tam in todos_tamanhos]
+    # Busca de tamanhos com segurança
+    todos_tamanhos = set()
+    for t in st.session_state.produtos:
+        tams = t.get("tamanhos", [])
+        if isinstance(tams, list):
+            for tam in tams:
+                todos_tamanhos.add(tam)
+    
+    tamanhos_opts = ["Todos"] + [str(tam) for tam in sorted(list(todos_tamanhos))]
 
-    # Preços mínimos e máximos da base
-    precos = [t["preco"] for t in st.session_state.produtos]
-    min_p_db, max_p_db = float(min(precos)), float(max(precos))
+    # Faixa de preço com segurança
+    precos = [t.get("preco", 0.0) for t in st.session_state.produtos]
+    min_p_db = float(min(precos)) if precos else 0.0
+    max_p_db = float(max(precos)) if precos else 2000.0
 
     # CAIXA 2: Painel de Filtros Avançados
     with st.container(border=True):
@@ -175,14 +186,25 @@ with st.sidebar:
         f_preco = st.slider(
             "Selecione o limite",
             min_value=0.0,
-            max_value=2000.0,
+            max_value=float(max(max_p_db, 2000.0)),
             value=(min_p_db, max_p_db),
             step=50.0
         )
 
 # --- CABEÇALHO DA PÁGINA PRINCIPAL ---
-st.title("SNEAKER VAULT")
-st.markdown("<p class='secondary-text' style='font-size: 1.1em;'>Vitrine clássica & acervo de sneakers</p>", unsafe_allow_html=True)
+col_head1, col_head2 = st.columns([3, 1])
+with col_head1:
+    st.title("SNEAKER VAULT")
+    st.markdown("<p class='secondary-text' style='font-size: 1.1em;'>Vitrine clássica & acervo de sneakers</p>", unsafe_allow_html=True)
+
+with col_head2:
+    st.write("")
+    # Botão de emergência para recarregar o banco de dados limpo
+    if st.button("🔄 Resetar Catálogo", use_container_width=True):
+        resetar_produtos()
+        st.toast("Catálogo atualizado para a nova versão!", icon="✅")
+        st.rerun()
+
 st.write("")
 
 # --- PAINEL DE CADASTRO DE NOVOS PRODUTOS ---
@@ -195,7 +217,7 @@ with st.expander("➕ Adicionar Novo Tênis ao Catálogo"):
         with col_m:
             nova_marca = st.selectbox("Marca", ["Nike", "Adidas", "Puma", "New Balance", "Outra"])
         with col_c:
-            nova_cor = st.text_input("Cor Principal", placeholder="Ex: Branco")
+            nova_cor = st.text_input("Cor Principal", value="Preto")
         with col_p:
             novo_preco = st.number_input("Preço (R$)", min_value=0.0, value=299.90, step=10.0)
 
@@ -212,7 +234,7 @@ with st.expander("➕ Adicionar Novo Tênis ao Catálogo"):
                     "nome": novo_nome,
                     "marca": nova_marca,
                     "cor": nova_cor,
-                    "tamanhos": novos_tams,
+                    "tamanhos": novos_tams if novos_tams else [40],
                     "preco": novo_preco,
                     "imagem": nova_imagem
                 }
@@ -229,30 +251,36 @@ busca = st.text_input("🔍 Buscar por modelo", placeholder="Digite o nome do t�
 
 st.write("---")
 
-# --- LÓGICA DE FILTRAGEM ---
+# --- LÓGICA DE FILTRAGEM SEGURA ---
 produtos_filtrados = st.session_state.produtos
 
 # Filtro por Marca
 if f_marca != "Todas":
-    produtos_filtrados = [t for t in produtos_filtrados if t["marca"] == f_marca]
+    produtos_filtrados = [t for t in produtos_filtrados if t.get("marca") == f_marca]
 
 # Filtro por Cor
 if f_cor != "Todas":
-    produtos_filtrados = [t for t in produtos_filtrados if t["cor"] == f_cor]
+    produtos_filtrados = [t for t in produtos_filtrados if t.get("cor") == f_cor]
 
 # Filtro por Tamanho
 if f_tamanho != "Todos":
-    produtos_filtrados = [t for t in produtos_filtrados if int(f_tamanho) in t["tamanhos"]]
+    produtos_filtrados = [
+        t for t in produtos_filtrados 
+        if int(f_tamanho) in t.get("tamanhos", [])
+    ]
 
 # Filtro por Faixa de Preço
 produtos_filtrados = [
     t for t in produtos_filtrados 
-    if f_preco[0] <= t["preco"] <= f_preco[1]
+    if f_preco[0] <= t.get("preco", 0.0) <= f_preco[1]
 ]
 
 # Filtro por Texto da Busca
 if busca:
-    produtos_filtrados = [t for t in produtos_filtrados if busca.lower() in t["nome"].lower()]
+    produtos_filtrados = [
+        t for t in produtos_filtrados 
+        if busca.lower() in t.get("nome", "").lower()
+    ]
 
 # --- VITRINE DE PRODUTOS ---
 if not produtos_filtrados:
@@ -264,13 +292,21 @@ else:
         
         with col:
             with st.container(border=True):
-                st.image(tenis["imagem"], use_container_width=True)
-                st.markdown(f"### {tenis['nome']}")
-                st.markdown(f"<span class='secondary-text'>Marca: {tenis['marca']} | Cor: {tenis['cor']}</span>", unsafe_allow_html=True)
-                st.markdown(f"<span class='secondary-text'>Tamanhos: {', '.join(map(str, tenis['tamanhos']))}</span>", unsafe_allow_html=True)
-                st.markdown(f"<h4 style='color: #111111; margin-top: 8px;'>R$ {tenis['preco']:.2f}</h4>", unsafe_allow_html=True)
+                st.image(tenis.get("imagem", ""), use_container_width=True)
+                st.markdown(f"### {tenis.get('nome', 'Sem Nome')}")
                 
-                if st.button("ADICIONAR AO CARRINHO", key=f"btn_{tenis['id']}", use_container_width=True):
+                marca_str = tenis.get('marca', 'Indefinida')
+                cor_str = tenis.get('cor', 'Padrão')
+                st.markdown(f"<span class='secondary-text'>Marca: {marca_str} | Cor: {cor_str}</span>", unsafe_allow_html=True)
+                
+                tams_list = tenis.get('tamanhos', [])
+                tams_str = ', '.join(map(str, tams_list)) if tams_list else 'Consulte'
+                st.markdown(f"<span class='secondary-text'>Tamanhos: {tams_str}</span>", unsafe_allow_html=True)
+                
+                preco_val = tenis.get('preco', 0.0)
+                st.markdown(f"<h4 style='color: #111111; margin-top: 8px;'>R$ {preco_val:.2f}</h4>", unsafe_allow_html=True)
+                
+                if st.button("ADICIONAR AO CARRINHO", key=f"btn_{tenis.get('id', idx)}", use_container_width=True):
                     st.session_state.carrinho.append(tenis)
-                    st.toast(f"{tenis['nome']} adicionado ao carrinho!", icon="✅")
+                    st.toast(f"{tenis.get('nome')} adicionado ao carrinho!", icon="✅")
                     st.rerun()
