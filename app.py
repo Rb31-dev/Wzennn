@@ -3,7 +3,7 @@ import streamlit as st
 # 1. Configuração da página
 st.set_page_config(page_title="Sneaker Vault", page_icon="👟", layout="wide")
 
-# 2. Injeção de CSS Corrigido (Força texto branco nos botões e ajusta bordas)
+# 2. Injeção de CSS para o estilo rústico clássico (Cards, Caixas e Botões)
 st.markdown("""
 <style>
     /* Força fundo claro global */
@@ -29,16 +29,17 @@ st.markdown("""
         font-weight: 600;
     }
 
-    /* Cards dos Tênis - Bordas marcadas e rústicas */
+    /* Estilização para Caixas/Cards no geral e na Sidebar */
     div[data-testid="stVerticalBlockBorderWrapper"] {
         border-radius: 6px !important;
         border: 2px solid #111111 !important;
         background-color: #FFFFFF !important;
         box-shadow: 4px 4px 0px #111111 !important;
-        padding: 16px;
+        padding: 14px;
+        margin-bottom: 15px;
     }
 
-    /* ESTILO DOS BOTÕES (Correção de Contraste e Espaçamento) */
+    /* Estilo dos Botões */
     div.stButton > button {
         background-color: #1B2A4A !important;
         border: 2px solid #111111 !important;
@@ -48,7 +49,7 @@ st.markdown("""
         transition: all 0.1s ease !important;
     }
 
-    /* Correção do Texto Interno do Botão (Remove a transparência/cor preta) */
+    /* Texto interno dos Botões em Branco Puro */
     div.stButton > button p, 
     div.stButton > button span, 
     div.stButton > button div {
@@ -58,7 +59,7 @@ st.markdown("""
         letter-spacing: 0.5px !important;
     }
 
-    /* Efeito ao passar o mouse */
+    /* Hover dos Botões */
     div.stButton > button:hover {
         background-color: #111111 !important;
         box-shadow: 4px 4px 0px #1B2A4A !important;
@@ -69,7 +70,7 @@ st.markdown("""
         color: #FFFFFF !important;
     }
 
-    /* Entradas de texto e seleção */
+    /* Entradas de Texto, Selects e Sliders */
     div[data-baseweb="input"], div[data-baseweb="select"] {
         border: 2px solid #111111 !important;
         border-radius: 4px !important;
@@ -78,16 +79,19 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# 3. Estado da Aplicação (Produtos e Carrinho)
+# 3. Estado da Aplicação
 if "carrinho" not in st.session_state:
     st.session_state.carrinho = []
 
+# Base de produtos enriquecida com Cor e Tamanhos
 if "produtos" not in st.session_state:
     st.session_state.produtos = [
         {
             "id": 1,
             "nome": "Air Jordan 1 Retro High",
             "marca": "Nike",
+            "cor": "Vermelho",
+            "tamanhos": [39, 40, 41, 42],
             "preco": 1299.90,
             "imagem": "https://images.unsplash.com/photo-1552346154-21d32810aba3?w=500",
         },
@@ -95,6 +99,8 @@ if "produtos" not in st.session_state:
             "id": 2,
             "nome": "Adidas Yeezy Boost 350",
             "marca": "Adidas",
+            "cor": "Preto",
+            "tamanhos": [38, 39, 40, 41, 42, 43],
             "preco": 1499.90,
             "imagem": "https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=500",
         },
@@ -102,6 +108,8 @@ if "produtos" not in st.session_state:
             "id": 3,
             "nome": "Puma Suede Classic",
             "marca": "Puma",
+            "cor": "Preto",
+            "tamanhos": [37, 38, 39, 40],
             "preco": 399.90,
             "imagem": "https://images.unsplash.com/photo-1608256246200-53e635b5b65f?w=500",
         },
@@ -109,60 +117,102 @@ if "produtos" not in st.session_state:
             "id": 4,
             "nome": "New Balance 550",
             "marca": "New Balance",
+            "cor": "Verde",
+            "tamanhos": [40, 41, 42, 43, 44],
             "preco": 899.90,
             "imagem": "https://images.unsplash.com/photo-1539185441755-769473a23570?w=500",
         },
     ]
 
-# --- SIDEBAR (Carrinho) ---
-st.sidebar.title("🛒 SEU CARRINHO")
-st.sidebar.write("---")
-
-if not st.session_state.carrinho:
-    st.sidebar.write("O carrinho está vazio.")
-else:
-    total = 0
-    for item in st.session_state.carrinho:
-        st.sidebar.markdown(f"**{item['nome']}**")
-        st.sidebar.markdown(f"<span class='secondary-text'>R$ {item['preco']:.2f}</span>", unsafe_allow_html=True)
-        total += item["preco"]
-        st.sidebar.write("---")
+# --- SIDEBAR (BARRA LATERAL COM CAIXAS) ---
+with st.sidebar:
+    st.title("🛒 SEU CARRINHO")
     
-    st.sidebar.markdown(f"### Total: R$ {total:.2f}")
-    if st.sidebar.button("FINALIZAR COMPRA", use_container_width=True):
-        st.sidebar.balloons()
-        st.sidebar.success("Pedido realizado com sucesso!")
-        st.session_state.carrinho = []
-        st.rerun()
+    # CAIXA 1: Conteúdo do Carrinho
+    with st.container(border=True):
+        if not st.session_state.carrinho:
+            st.markdown("<p class='secondary-text' style='margin:0;'>O carrinho está vazio.</p>", unsafe_allow_html=True)
+        else:
+            total = 0
+            for item in st.session_state.carrinho:
+                st.markdown(f"**{item['nome']}**")
+                st.markdown(f"<span class='secondary-text'>R$ {item['preco']:.2f}</span>", unsafe_allow_html=True)
+                total += item["preco"]
+                st.write("---")
+            
+            st.markdown(f"#### Total: R$ {total:.2f}")
+            if st.button("FINALIZAR COMPRA", use_container_width=True):
+                st.balloons()
+                st.success("Pedido realizado!")
+                st.session_state.carrinho = []
+                st.rerun()
 
-# --- CABEÇALHO ---
+    st.write("")
+    st.title("⚡ FILTROS")
+
+    # Listas dinâmicas para os seletores
+    marcas_opts = ["Todas"] + sorted(list(set([t["marca"] for t in st.session_state.produtos])))
+    cores_opts = ["Todas"] + sorted(list(set([t["cor"] for t in st.session_state.produtos])))
+    
+    # Extrai todos os tamanhos disponíveis na base
+    todos_tamanhos = sorted(list(set([tam for t in st.session_state.produtos for tam in t["tamanhos"]])))
+    tamanhos_opts = ["Todos"] + [str(tam) for tam in todos_tamanhos]
+
+    # Preços mínimos e máximos da base
+    precos = [t["preco"] for t in st.session_state.produtos]
+    min_p_db, max_p_db = float(min(precos)), float(max(precos))
+
+    # CAIXA 2: Painel de Filtros Avançados
+    with st.container(border=True):
+        st.subheader("Filtrar Tênis")
+        
+        f_marca = st.selectbox("Marca", marcas_opts)
+        f_cor = st.selectbox("Cor", cores_opts)
+        f_tamanho = st.selectbox("Tamanho", tamanhos_opts)
+        
+        st.write("---")
+        st.markdown("**Faixa de Preço (R$)**")
+        f_preco = st.slider(
+            "Selecione o limite",
+            min_value=0.0,
+            max_value=2000.0,
+            value=(min_p_db, max_p_db),
+            step=50.0
+        )
+
+# --- CABEÇALHO DA PÁGINA PRINCIPAL ---
 st.title("SNEAKER VAULT")
 st.markdown("<p class='secondary-text' style='font-size: 1.1em;'>Vitrine clássica & acervo de sneakers</p>", unsafe_allow_html=True)
 st.write("")
 
-# --- PAINEL PARA CADASTRAR NOVOS PRODUTOS ---
+# --- PAINEL DE CADASTRO DE NOVOS PRODUTOS ---
 with st.expander("➕ Adicionar Novo Tênis ao Catálogo"):
     with st.form("form_novo_tenis", clear_on_submit=True):
         st.subheader("Cadastrar Produto")
         novo_nome = st.text_input("Nome do Tênis", placeholder="Ex: Nike Dunk Low")
         
-        col_m, col_p = st.columns(2)
+        col_m, col_c, col_p = st.columns(3)
         with col_m:
             nova_marca = st.selectbox("Marca", ["Nike", "Adidas", "Puma", "New Balance", "Outra"])
+        with col_c:
+            nova_cor = st.text_input("Cor Principal", placeholder="Ex: Branco")
         with col_p:
             novo_preco = st.number_input("Preço (R$)", min_value=0.0, value=299.90, step=10.0)
-            
+
+        novos_tams = st.multiselect("Tamanhos Disponíveis", [36, 37, 38, 39, 40, 41, 42, 43, 44], default=[39, 40, 41])
         nova_imagem = st.text_input("URL da Imagem", value="https://images.unsplash.com/photo-1552346154-21d32810aba3?w=500")
         
         btn_cadastrar = st.form_submit_button("CADASTRAR TÊNIS", use_container_width=True)
         
         if btn_cadastrar:
-            if novo_nome:
+            if novo_nome and nova_cor:
                 novo_id = len(st.session_state.produtos) + 1
                 novo_item = {
                     "id": novo_id,
                     "nome": novo_nome,
                     "marca": nova_marca,
+                    "cor": nova_cor,
+                    "tamanhos": novos_tams,
                     "preco": novo_preco,
                     "imagem": nova_imagem
                 }
@@ -170,35 +220,43 @@ with st.expander("➕ Adicionar Novo Tênis ao Catálogo"):
                 st.success(f"Tênis '{novo_nome}' adicionado com sucesso!")
                 st.rerun()
             else:
-                st.error("Por favor, digite o nome do tênis.")
+                st.error("Por favor, preencha o nome e a cor do tênis.")
 
 st.write("---")
 
-# --- BUSCA E FILTROS ---
-col_busca, col_filtro = st.columns([2, 1])
-
-marcas_disponiveis = ["Todas"] + sorted(list(set([t["marca"] for t in st.session_state.produtos])))
-
-with col_busca:
-    busca = st.text_input("Buscar por modelo", placeholder="Digite o nome do tênis...")
-
-with col_filtro:
-    marca_selecionada = st.selectbox("Filtrar por Marca", marcas_disponiveis)
+# --- BARRA DE BUSCA RÁPIDA ---
+busca = st.text_input("🔍 Buscar por modelo", placeholder="Digite o nome do tênis...")
 
 st.write("---")
 
-# --- FILTRAGEM ---
+# --- LÓGICA DE FILTRAGEM ---
 produtos_filtrados = st.session_state.produtos
 
-if marca_selecionada != "Todas":
-    produtos_filtrados = [t for t in produtos_filtrados if t["marca"] == marca_selecionada]
+# Filtro por Marca
+if f_marca != "Todas":
+    produtos_filtrados = [t for t in produtos_filtrados if t["marca"] == f_marca]
 
+# Filtro por Cor
+if f_cor != "Todas":
+    produtos_filtrados = [t for t in produtos_filtrados if t["cor"] == f_cor]
+
+# Filtro por Tamanho
+if f_tamanho != "Todos":
+    produtos_filtrados = [t for t in produtos_filtrados if int(f_tamanho) in t["tamanhos"]]
+
+# Filtro por Faixa de Preço
+produtos_filtrados = [
+    t for t in produtos_filtrados 
+    if f_preco[0] <= t["preco"] <= f_preco[1]
+]
+
+# Filtro por Texto da Busca
 if busca:
     produtos_filtrados = [t for t in produtos_filtrados if busca.lower() in t["nome"].lower()]
 
-# --- VITRINE ---
+# --- VITRINE DE PRODUTOS ---
 if not produtos_filtrados:
-    st.info("Nenhum tênis encontrado.")
+    st.info("Nenhum tênis encontrado com esses filtros.")
 else:
     cols = st.columns(3)
     for idx, tenis in enumerate(produtos_filtrados):
@@ -208,7 +266,8 @@ else:
             with st.container(border=True):
                 st.image(tenis["imagem"], use_container_width=True)
                 st.markdown(f"### {tenis['nome']}")
-                st.markdown(f"<span class='secondary-text'>Marca: {tenis['marca']}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span class='secondary-text'>Marca: {tenis['marca']} | Cor: {tenis['cor']}</span>", unsafe_allow_html=True)
+                st.markdown(f"<span class='secondary-text'>Tamanhos: {', '.join(map(str, tenis['tamanhos']))}</span>", unsafe_allow_html=True)
                 st.markdown(f"<h4 style='color: #111111; margin-top: 8px;'>R$ {tenis['preco']:.2f}</h4>", unsafe_allow_html=True)
                 
                 if st.button("ADICIONAR AO CARRINHO", key=f"btn_{tenis['id']}", use_container_width=True):
