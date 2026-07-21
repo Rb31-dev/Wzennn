@@ -1,7 +1,7 @@
 import streamlit as st
 
 # Configuração da página
-st.set_page_config(page_title="Sneaker Vault", page_icon="👟", layout="wide")
+st.set_page_config(page_title="10% Off na primeira compra", page_icon="👟", layout="wide")
 
 # Inicializa o carrinho de compras no estado da sessão
 if "carrinho" not in st.session_state:
